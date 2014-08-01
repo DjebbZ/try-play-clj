@@ -11,13 +11,24 @@
     :right (assoc entity :x (inc (:x entity)))
     nil))
 
+(defn move-first
+  [entities direction]
+  (vec (conj (rest entities) (move (first entities) direction))))
+
+(defn create-lion [max-width max-height]
+  (assoc (texture "lion.png")
+         :x (rand-int max-width)
+         :y (rand-int max-height)
+         :width 100 :height 100
+         :angle (rand-int 360)
+         :origin-x 50 :origin-y 50))
+
 (defscreen main-screen
   :on-show
   (fn [screen entities]
     (update! screen :renderer (stage) :camera (orthographic))
-    (assoc (texture "lion.png")
-           :x 50 :y 50 :width 100 :height 100
-           :angle 45 :origin-x 50 :origin-y 50))
+    (add-timer! screen :spawn-enemy 2 2)
+    (create-lion (width screen) (height screen)))
 
   :on-render
   (fn [screen entities]
@@ -28,13 +39,13 @@
   (fn [screen entities]
     (cond
       (= (:key screen) (key-code :dpad-up))
-      (move (first entities) :up)
+      (move-first entities :up)
       (= (:key screen) (key-code :dpad-left))
-      (move (first entities) :left)
+      (move-first entities :left)
       (= (:key screen) (key-code :dpad-right))
-      (move (first entities) :right)
+      (move-first entities :right)
       (= (:key screen) (key-code :dpad-down))
-      (move (first entities) :down)))
+      (move-first entities :down)))
 
   :on-touch-down
   (fn [screen entities]
@@ -51,7 +62,13 @@
 
   :on-resize
   (fn [screen entities]
-    (height! screen 600)))
+    (height! screen 600))
+
+  :on-timer
+  (fn [screen entities]
+    (case (:id screen)
+      :spawn-enemy (conj entities (create-lion (width screen) (height screen)))
+      nil)))
 
 (defgame try-play-clj
   :on-create
