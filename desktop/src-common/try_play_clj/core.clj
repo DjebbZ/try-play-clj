@@ -1,6 +1,12 @@
 (ns try-play-clj.core
+  (:import (com.badlogic.gdx.scenes.scene2d.ui TextButton$TextButtonStyle)
+           (com.badlogic.gdx.scenes.scene2d EventListener)
+           (com.badlogic.gdx.scenes.scene2d.utils ClickListener))
   (:require [play-clj.core :refer :all]
-            [play-clj.g2d :refer :all]))
+            [play-clj.g2d :refer :all]
+            [play-clj.ui :refer :all]))
+
+(declare try-play-clj main-screen text-screen button-screen)
 
 (defn move
   [entity direction]
@@ -27,7 +33,6 @@
   :on-show
   (fn [screen entities]
     (update! screen :renderer (stage) :camera (orthographic))
-    (add-timer! screen :spawn-enemy 2 2)
     (create-lion (width screen) (height screen)))
 
   :on-render
@@ -64,13 +69,56 @@
   (fn [screen entities]
     (height! screen 600))
 
-  :on-timer
+  :on-clicked-spawn
   (fn [screen entities]
-    (case (:id screen)
-      :spawn-enemy (conj entities (create-lion (width screen) (height screen)))
-      nil)))
+    (conj entities (create-lion (width screen) (height screen)))))
+
+(defscreen text-screen
+   :on-show
+   (fn [screen entities]
+     (update! screen :camera (orthographic) :renderer (stage))
+     (assoc (label "0" (color :white))
+            :id :fps
+            :x 5))
+
+   :on-render
+   (fn [screen entities]
+     (->> (for [entity entities]
+            (case (:id entity)
+              :fps (doto entity (label! :set-text (str (game :fps))))
+              entity))
+          (render! screen)))
+
+   :on-resize
+   (fn [screen entites]
+     (height! screen 300)))
+
+(defscreen button-screen
+   :on-show
+   (fn [screen entities]
+     (update! screen :camera (orthographic) :renderer (stage))
+     (assoc (label "Spawn" (color :white))
+            :x 200 :y 200))
+
+   :on-render
+   (fn [screen entities]
+     (render! screen entities))
+
+   :on-ui-touch-down
+   (fn [screen entities]
+     (println (:event screen))
+     (println (:input-x screen))
+     (println (:input-y screen))
+     (println (:pointer screen))
+     (println (:button screen))
+     (run! main-screen :on-clicked-spawn)
+     entities)
+
+   :on-resize
+   (fn [screen entites]
+     (height! screen 300)))
 
 (defgame try-play-clj
   :on-create
   (fn [this]
-    (set-screen! this main-screen)))
+    (set-screen! this main-screen button-screen text-screen)))
