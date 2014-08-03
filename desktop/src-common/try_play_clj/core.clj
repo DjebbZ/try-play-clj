@@ -11,10 +11,10 @@
 (defn move
   [entity direction]
   (case direction
-    :down (assoc entity :y (dec (:y entity)))
-    :up (assoc entity :y (inc (:y entity)))
-    :left (assoc entity :x (dec (:x entity)))
-    :right (assoc entity :x (inc (:x entity)))
+    :down (assoc entity :y (- (:y entity) 10))
+    :up (assoc entity :y (+ (:y entity) 10))
+    :left (assoc entity :x (- (:x entity) 10))
+    :right (assoc entity :x (+ (:x entity) 10))
     nil))
 
 (defn move-first
@@ -97,20 +97,15 @@
    :on-show
    (fn [screen entities]
      (update! screen :camera (orthographic) :renderer (stage))
-     (assoc (label "Spawn" (color :white))
-            :x 200 :y 200))
+     (assoc (text-button "Spawn" (style :text-button nil nil nil (bitmap-font)))
+            :x 200))
 
    :on-render
    (fn [screen entities]
      (render! screen entities))
 
-   :on-ui-touch-down
+   :on-ui-changed
    (fn [screen entities]
-     (println (:event screen))
-     (println (:input-x screen))
-     (println (:input-y screen))
-     (println (:pointer screen))
-     (println (:button screen))
      (run! main-screen :on-clicked-spawn)
      entities)
 
